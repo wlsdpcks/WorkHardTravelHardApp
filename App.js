@@ -7,6 +7,7 @@ import {
   TextInput,
   ScrollView,
   Alert,
+  Platform,
 } from "react-native";
 import { Fontisto } from "@expo/vector-icons";
 import { useState, useEffect } from "react";
@@ -27,7 +28,9 @@ export default function App() {
   };
   const loadToDos = async () => {
     const s = await AsyncStorage.getItem(STORAGE_KEY);
-    setToDos(JSON.parse(s));
+    if (s) {
+      setToDos(JSON.parse(s));
+    }
   };
   useEffect(() => {
     loadToDos();
@@ -42,19 +45,29 @@ export default function App() {
     setText("");
   };
   const deleteToDo = (key) => {
-    Alert.alert("Delete To Do?", "Are you sure?", [
-      { text: "Cancel" },
-      {
-        text: "I'm Sure",
-        style: "destructive",
-        onPress: () => {
-          const newToDos = { ...toDos };
-          delete newToDos[key];
-          setToDos(newToDos);
-          saveToDos(newToDos);
+    if (Platform.OS === "web") {
+      const ok = confirm("Do you want to delete this To Do?");
+      if (ok) {
+        const newToDos = { ...toDos };
+        delete newToDos[key];
+        setToDos(newToDos);
+        saveToDos(newToDos);
+      }
+    } else {
+      Alert.alert("Delete To Do?", "Are you sure?", [
+        { text: "Cancel" },
+        {
+          text: "I'm Sure",
+          style: "destructive",
+          onPress: () => {
+            const newToDos = { ...toDos };
+            delete newToDos[key];
+            setToDos(newToDos);
+            saveToDos(newToDos);
+          },
         },
-      },
-    ]);
+      ]);
+    }
   };
 
   return (
@@ -64,7 +77,8 @@ export default function App() {
         <TouchableOpacity onPress={work}>
           <Text
             style={{
-              ...styles.btnText,
+              fontSize: 38,
+              fontWeight: "600",
               color: working ? "white" : theme.grey,
             }}
           >
@@ -74,7 +88,8 @@ export default function App() {
         <TouchableOpacity onPress={travel}>
           <Text
             style={{
-              ...styles.btnText,
+              fontSize: 38,
+              fontWeight: "600",
               color: !working ? "white" : theme.grey,
             }}
           >
@@ -117,10 +132,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     flexDirection: "row",
     marginTop: 100,
-  },
-  btnText: {
-    fontSize: 38,
-    fontWeight: "600",
   },
   input: {
     backgroundColor: "white",
